@@ -28,17 +28,6 @@ public class TestGraphBasic
     }
     
     @Test
-    public void testAddUndirectedEdges()
-    {
-        INode n1 = new Node("A");
-        INode n2 = new Node("B");
-        n1.addUndirectedEdgeToNode(n2, 5);
-        assertEquals(5, n1.getWeight(n2));
-        assertEquals(5, n2.getWeight(n1));
-    }
-    
-    
-    @Test
     public void testAddDirectedEdge()
     {
         INode n1 = new Node("A");
@@ -52,6 +41,19 @@ public class TestGraphBasic
             // do nothing; we are supposed to get an exception
         }
     }
+    
+    
+    @Test
+    public void testAddUndirectedEdges()
+    {
+        INode n1 = new Node("A");
+        INode n2 = new Node("B");
+        n1.addUndirectedEdgeToNode(n2, 5);
+        assertEquals(5, n1.getWeight(n2));
+        assertEquals(5, n2.getWeight(n1));
+    }
+    
+    
     
     @Test
     public void testNeighbors()

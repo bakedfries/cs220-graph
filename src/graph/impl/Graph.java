@@ -1,7 +1,14 @@
 package graph.impl;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Stack;
 
 import graph.IGraph;
 import graph.INode;
@@ -14,8 +21,8 @@ import graph.NodeVisitor;
  * @author jspacco
  *
  */
-public class Graph implements IGraph
-{
+public class Graph implements IGraph{
+	public Map<String, INode> node = new HashMap<>();
     
     /**
      * Return the {@link Node} with the given name.
@@ -29,87 +36,148 @@ public class Graph implements IGraph
      * @return
      */
     public INode getOrCreateNode(String name) {
-        throw new UnsupportedOperationException("Implement this method");
+    	node.putIfAbsent(name, new Node(name));
+    	return node.get(name);
     }
-
-    /**
-     * Return true if the graph contains a node with the given name,
-     * and false otherwise.
-     * 
-     * @param name
-     * @return
-     */
+    
     public boolean containsNode(String name) {
-        throw new UnsupportedOperationException("Implement this method");
+    	return (node.containsKey(name));
     }
 
-    /**
-     * Return a collection of all of the nodes in the graph.
-     * 
-     * @return
-     */
     public Collection<INode> getAllNodes() {
-        throw new UnsupportedOperationException("Implement this method");
-    }
-    
-    /**
-     * Perform a breadth-first search on the graph, starting at the node
-     * with the given name. The visit method of the {@link NodeVisitor} should
-     * be called on each node the first time we visit the node.
-     * 
-     * 
-     * @param startNodeName
-     * @param v
-     */
-    public void breadthFirstSearch(String startNodeName, NodeVisitor v)
-    {
-        // TODO: Implement this method
-        throw new UnsupportedOperationException("Implement this method");
+    	return node.values();
     }
 
-    /**
-     * Perform a depth-first search on the graph, starting at the node
-     * with the given name. The visit method of the {@link NodeVisitor} should
-     * be called on each node the first time we visit the node.
-     * 
-     * 
-     * @param startNodeName
-     * @param v
-     */
-    public void depthFirstSearch(String startNodeName, NodeVisitor v)
-    {
-        // TODO: implement this method
-        throw new UnsupportedOperationException("Implement this method");
-    }
-
-    /**
-     * Perform Dijkstra's algorithm for computing the cost of the shortest path
-     * to every node in the graph starting at the node with the given name.
-     * Return a mapping from every node in the graph to the total minimum cost of reaching
-     * that node from the given start node.
-     * 
-     * <b>Hint:</b> Creating a helper class called Path, which stores a destination
-     * (String) and a cost (Integer), and making it implement Comparable, can be
-     * helpful. Well, either than or repeated linear scans.
-     * 
-     * @param startName
-     * @return
-     */
-    public Map<INode,Integer> dijkstra(String startName) {
-        // TODO: Implement this method
-        throw new UnsupportedOperationException("Implement this method");
+    //The pseudocode from the slides was an amazing reference. Just wonderful.
+    public void breadthFirstSearch(String startNodeName, NodeVisitor v){
+    	Set<INode> visited = new HashSet<INode>(); //visited = new set
+    	Queue<INode> toVisit = new LinkedList<>(); //toVisit = new queue
+    	toVisit.add(node.get(startNodeName)); //enque(start node)
+    	
+    	while(toVisit.size() != 0) { 
+    		INode temp = toVisit.remove(); //creating a temp to later check if the specific node has been visited or not
+    		if (visited.contains(temp));
+    		//do nothing? something?continue loop
+    		v.visit(temp);
+    		INode a = toVisit.remove();
+    		visited.add(a);
+    		for(INode pointer:temp.getNeighbors()) { //checking the adjacent nodes and enqueuing them if they have not been accessed yet
+    			if(!visited.contains(pointer))
+    				toVisit.add(pointer);
+    		}	
+    	}
     }
     
-    /**
-     * Perform Prim-Jarnik's algorithm to compute a Minimum Spanning Tree (MST).
-     * 
-     * The MST is itself a graph containing the same nodes and a subset of the edges 
-     * from the original graph.
-     * 
-     * @return
-     */
+    //start with a stack not a queue and the neighbors of the neighbors are accessed first
+    public void depthFirstSearch(String startNodeName, NodeVisitor v){
+    	Set<INode> visited = new HashSet<INode>(); //visited = new set
+    	Stack<INode> toVisit = new Stack<>(); //toVisit = new queue
+    	toVisit.push(node.get(startNodeName)); //enqueue(start node)
+    	
+    	while(toVisit.isEmpty()) { 
+    		INode temp = toVisit.pop(); //creating a temp to later check if the specific node has been visited or not
+    		if (visited.contains(temp))
+    			continue;
+    		v.visit(temp);
+    		INode a = toVisit.pop();
+    		visited.add(a);
+    		
+    		for(INode pointer:temp.getNeighbors()) { //checking the adjacent nodes and enqueuing them if they have not been accessed yet
+    			if(!visited.contains(pointer))
+    				toVisit.push(pointer);
+    		}
+    			
+    	}
+    }
+
+    //helper class Path
+    class Path implements Comparable <Path>{
+		String dest;
+		int cost;
+		
+		public Path(String dest, int cost) {
+			this.dest = dest;
+			this.cost = cost;	
+		}
+		public INode getNode() { //returns current node from where it begins
+			return node.get(this.dest);
+		}
+		
+		public int getWeight() { //returns the current cost
+			return this.cost;
+		}
+		
+		@Override
+		public int compareTo(Path o) {
+			return this.cost - o.cost;
+		}
+	}
+   public Map<INode,Integer> dijkstra(String startName){
+	   Map <INode, Integer> result = new HashMap<INode, Integer>();
+	   PriorityQueue<Path> todo = new PriorityQueue<>();
+	   todo.add(new Path(startName,0));
+	   
+	   while (this.getAllNodes().size()> result.size()) {
+		   Path tempPath = todo.poll();
+		   INode tempNode = node.get(tempPath.dest);
+		   if(result.containsKey(tempNode))
+			   continue;
+		   int cost = tempPath.getWeight();
+		   result.put(tempNode, cost);
+		   for(INode i : tempNode.getNeighbors())
+			   todo.add(new Path(i.getName(),cost + tempNode.getWeight(i)));
+	   }
+	   return result;
+   }  
+    
+   //helper class
+   class Prim implements Comparable <Prim>{
+		String start;
+		String dest;
+		int cost;
+		
+		public Prim(String start,String dest, int cost) {
+			this.start = start;
+			this.dest = dest;
+			this.cost = cost;	
+		}
+		
+		public INode getNode() { //returns current node from where it begins
+			return node.get(this.dest);
+		}
+		
+		public int getWeight() { //returns the current cost
+			return this.cost;
+		}
+		
+		@Override
+		public int compareTo(Prim o) {
+			return this.cost - o.cost;
+		}
+   }
+   
+	
     public IGraph primJarnik() {
-        //TODO Implement this method
-        throw new UnsupportedOperationException();
-    }
+    	PriorityQueue<Prim> todo = new PriorityQueue<>();
+    	IGraph g = new Graph();
+		INode s = this.getAllNodes().iterator().next();
+		Prim p = todo.poll();
+		//for each loop to iterate and add stuff to the priority queue
+		for (INode i:s.getNeighbors()) 
+			todo.add(new Prim(s.getName(),i.getName(),i.getWeight(s)));
+		//graph size should not be equal to reference node sizes for the loop to work
+		while(g.getAllNodes().size() != this.getAllNodes().size()) {
+			if(g.containsNode(p.dest)) //priority queue
+				continue;
+			INode dest = g.getOrCreateNode(p.dest);
+			INode start = g.getOrCreateNode(p.start);
+			start.addUndirectedEdgeToNode(dest, p.cost); //updating the edges
+			//creating a Node object that takes account of the edges to be added to the priority queue
+			INode addStuff = node.get(p.dest);
+			for(INode i: addStuff.getNeighbors())
+				todo.add(new Prim(addStuff.getName(), i.getName(),i.getWeight(addStuff)));
+				}
+		return g;
+	}
+    
 }

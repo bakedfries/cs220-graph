@@ -81,7 +81,13 @@ graph dijkstra1 {
         IGraph graph = GraphFactories.createUndirectedWeightedGraphFromEdgeList(new FileInputStream("tests/dijkstra1.txt"));
         IGraph g2 = graph.primJarnik();
         
-        // TODO: put some assertions here to make sure that g2 works
+        //I'm not too sure about the test cases here. I know that both graphs should be the...same? so graph = g2?
+        //Also shouldn't both graphs, because they're the same size, have all the same nodes?
+        //I couldn't translate that into test cases
+        
+        //graph.getAllNodes().size() == g2.getAllNodes().size();
+        //graph.containsNode(g2.getAllNodes().toString());
+        
         INode a = g2.getOrCreateNode("A");
         INode b = g2.getOrCreateNode("B");
         INode c = g2.getOrCreateNode("C");
